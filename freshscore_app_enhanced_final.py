@@ -6,6 +6,17 @@ import plotly.graph_objects as go
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.datasets import make_regression
 
+CATEGORY_CO2_FACTORS = {
+    "milk": 1.5,
+    "meat": 6.0,
+    "seafood": 5.8,
+    "cheese": 2.5,
+    "leafy_greens": 1.2,
+    "yogurt": 1.5,
+    "frozen_food": 3.5,
+    "vaccines": 5.0,
+    "herbs": 1.0
+}
 # Page settings
 st.set_page_config(page_title="FreshScore AI – ColdChain Monitor", layout="wide")
 
