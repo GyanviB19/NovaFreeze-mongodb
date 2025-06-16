@@ -1,14 +1,14 @@
+
 import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.datasets import make_regression
+from logger import log_freshscore
 
-# Page settings
 st.set_page_config(page_title="FreshScore AI – ColdChain Monitor", layout="wide")
 
-# Custom background block style
 def colorful_block(title, color, content):
     st.markdown(f"""
         <div style='background-color:{color};padding:20px;border-radius:10px;'>
@@ -17,11 +17,9 @@ def colorful_block(title, color, content):
         </div>
     """, unsafe_allow_html=True)
 
-# Page header
 st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🍓 FreshScore Predictor – ColdChain AI</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
-# Layout
 left, right = st.columns([1, 1.2])
 
 with left:
@@ -53,13 +51,26 @@ if submitted:
         input_data[f"category_{cat}"] = 1 if category == cat else 0
 
     input_df = pd.DataFrame([input_data])
-
     model = RandomForestRegressor(n_estimators=100, random_state=42)
     X_dummy, y_dummy = make_regression(n_samples=1000, n_features=len(input_df.columns), noise=0.1)
     model.fit(X_dummy, y_dummy)
+    score = float(np.clip(model.predict(input_df)[0], 0, 100))
 
-    score = model.predict(input_df)[0]
-    score = float(np.clip(score, 0, 100))
+    try:
+        log_freshscore({
+            "category": category,
+            "temperature": temperature,
+            "humidity": humidity,
+            "duration_hours": duration_hours,
+            "distance_km": distance_km,
+            "door_openings": door_openings,
+            "freshscore": score,
+            "money_saved_usd": score * 3,
+            "co2_avoided_kg": score * 0.02
+        })
+        st.success("✅ FreshScore logged to MongoDB!")
+    except Exception as e:
+        st.error(f"❌ MongoDB logging failed: {e}")
 
     with right:
         st.markdown("<h4>🌡️ Freshness Meter</h4>", unsafe_allow_html=True)
@@ -82,27 +93,19 @@ if submitted:
         ))
         st.plotly_chart(fig)
 
-        if score > 80:
-            colorful_block("✅ Excellent freshness!", "#28a745", "Product is in optimal condition.")
-        elif score > 60:
-            colorful_block("🟡 Acceptable freshness", "#ffc107", "Monitor temperature and transit time.")
-        else:
-            colorful_block("🚨 Spoilage Risk", "#dc3545", "Inspect or reroute the item immediately.")
-
         st.markdown("""
-        ---
-        ### 🧾 What Does the FreshScore Mean?
+### 🧾 What Does the FreshScore Mean?
 
-        The **FreshScore** is a machine learning–generated indicator (0–100) representing the likely freshness and quality of a perishable product at the point of evaluation.
+The **FreshScore** is a machine learning–generated indicator (0–100) representing the likely freshness and quality of a perishable product at the point of evaluation.
 
-        - **FreshScore 80–100:** ✅ **Healthy & Fresh**  
-          Optimal temperature, low door openings, short duration. Products are likely to retain full quality, safety, and shelf life.
+- **FreshScore 80–100:** ✅ **Healthy & Fresh**  
+  Optimal temperature, low door openings, short duration. Products are likely to retain full quality, safety, and shelf life.
 
-        - **FreshScore 60–79:** ⚠️ **Acceptable but Monitor Closely**  
-          Slight deviation in temperature or transit duration. While still usable, quality may begin to degrade.
+- **FreshScore 60–79:** ⚠️ **Acceptable but Monitor Closely**  
+  Slight deviation in temperature or transit duration. While still usable, quality may begin to degrade.
 
-        - **FreshScore below 60:** 🚨 **Spoilage Risk**  
-          High probability of reduced quality, contamination, or spoilage. Action needed — reroute, inspect, or dispose.
+- **FreshScore below 60:** 🚨 **Spoilage Risk**  
+  High probability of reduced quality, contamination, or spoilage. Action needed — reroute, inspect, or dispose.
 
-        This score helps cold chain operators, retailers, and quality controllers make **real-time decisions** based on AI-powered predictions.
+This score helps cold chain operators, retailers, and quality controllers make **real-time decisions** based on AI-powered predictions.
         """)
