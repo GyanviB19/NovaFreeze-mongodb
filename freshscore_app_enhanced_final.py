@@ -101,12 +101,12 @@ if submitted:
         ))
         st.plotly_chart(fig)
 
-        if score > 80:
-            colorful_block("✅ Excellent freshness!", "#28a745", "Product is in optimal condition.")
+         if score > 80:
+            st.markdown("<div style='background-color:#28a745;padding:15px;border-radius:10px;color:white;font-weight:bold;'>✅ Excellent freshness! Product is in optimal condition.</div>", unsafe_allow_html=True)
         elif score > 60:
-            colorful_block("🟡 Acceptable freshness", "#ffc107", "Monitor temperature and transit time.")
+            st.markdown("<div style='background-color:#ffc107;padding:15px;border-radius:10px;color:white;font-weight:bold;'>🟡 Acceptable freshness. Monitor temperature and transit time.</div>", unsafe_allow_html=True)
         else:
-            colorful_block("🚨 Spoilage Risk", "#dc3545", "Inspect or reroute the item immediately.")
+            st.markdown("<div style='background-color:#dc3545;padding:15px;border-radius:10px;color:white;font-weight:bold;'>🚨 Spoilage Risk. Inspect or reroute the item immediately.</div>", unsafe_allow_html=True)
 
         st.markdown("""
         ---
